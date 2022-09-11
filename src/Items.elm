@@ -2,6 +2,11 @@ module Items exposing (..)
 
 ---Items
 
+import Html
+import Html.Attributes as Attrs
+import List.Extra
+import Util
+
 
 type ItemSlot
     = Single SingleItemType
@@ -32,7 +37,7 @@ type PlantItemType
 
 
 stackSize =
-    50
+    32
 
 
 itemToItemKind : ItemSlot -> ItemKind
@@ -337,6 +342,38 @@ safeMoveBetweenContainers itemSlot source destination =
     moveBetweenContainers itemSlot source destination |> Maybe.withDefault ( source, destination )
 
 
+moveSlotId : Int -> Container -> Container -> Maybe ( Container, Container )
+moveSlotId id source destination =
+    List.Extra.getAt id source.items
+        |> Maybe.map
+            (\item ->
+                let
+                    newDestinationAttempt =
+                        addItemToContainer item destination
+
+                    overflowSlot =
+                        List.Extra.getAt newDestinationAttempt.capacity newDestinationAttempt.items
+                in
+                ( { source
+                    | items =
+                        case overflowSlot of
+                            Just slot ->
+                                List.Extra.setAt id slot source.items
+
+                            Nothing ->
+                                List.Extra.removeAt id source.items
+                  }
+                , { newDestinationAttempt | items = newDestinationAttempt.items |> List.Extra.removeAt newDestinationAttempt.capacity }
+                )
+            )
+
+
+safeMoveSlotId : Int -> Container -> Container -> ( Container, Container )
+safeMoveSlotId id source destination =
+    moveSlotId id source destination
+        |> Maybe.withDefault ( source, destination )
+
+
 exampleContainer : Container
 exampleContainer =
     { items = exampleItems
@@ -355,7 +392,7 @@ exampleContainer2 =
         , single Hoe
         , single Hoe
         ]
-    , capacity = 24
+    , capacity = 8
     }
 
 

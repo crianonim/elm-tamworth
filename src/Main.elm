@@ -1,6 +1,8 @@
 module Main exposing (Model, Msg, main)
 
 import Browser
+import ContainerTransferUI
+import ContainerUI
 import Farming
 import Html exposing (Html)
 import Html.Attributes as Attrs
@@ -14,16 +16,24 @@ main =
 
 
 type alias Model =
-    { farming : Farming.Model }
+    { farming : Farming.Model
+    , container : ContainerUI.Model
+    , transfer : ContainerTransferUI.Model
+    }
 
 
 init : Model
 init =
-    { farming = Farming.init }
+    { farming = Farming.init
+    , container = ContainerUI.init Items.exampleContainer
+    , transfer = ContainerTransferUI.init Items.exampleContainer Items.exampleContainer2
+    }
 
 
 type Msg
     = UpdateFarming Farming.Msg
+    | UpdateContainerUI ContainerUI.Msg
+    | UpdateTransfer ContainerTransferUI.Msg
 
 
 update : Msg -> Model -> Model
@@ -31,6 +41,12 @@ update msg model =
     case msg of
         UpdateFarming msgFarming ->
             { model | farming = Farming.update msgFarming model.farming }
+
+        UpdateContainerUI msgContainer ->
+            { model | container = ContainerUI.update msgContainer model.container }
+
+        UpdateTransfer transMsg ->
+            { model | transfer = ContainerTransferUI.update transMsg model.transfer }
 
 
 view : Model -> Html Msg
@@ -42,11 +58,14 @@ view model =
     Html.div []
         [ Html.div [ Attrs.class "h-full grid place-items-center" ]
             []
-        , Farming.view model.farming |> Html.map UpdateFarming
-        , viewContainer Items.exampleContainer
-        , viewContainer Items.exampleContainer2
-        , viewContainer c1
-        , viewContainer c2
+
+        --, Farming.view model.farming |> Html.map UpdateFarming
+        --, viewContainerTest Items.exampleContainer
+        --, viewContainerTest Items.exampleContainer2
+        --, viewContainerTest c1
+        --, viewContainerTest c2
+        --, ContainerUI.view model.container |> Html.map UpdateContainerUI
+        , ContainerTransferUI.view model.transfer |> Html.map UpdateTransfer
 
         --, viewContainer (Items.exampleContainer |> Items.addItemToContainer (Items.single Items.Hoe))
         --, viewContainer (Items.exampleContainer |> Items.safeRemoveItemFromContainer (Items.plantItem Items.Wheat 100))
@@ -57,5 +76,5 @@ view model =
         ]
 
 
-viewContainer container =
+viewContainerTest container =
     Html.div [] [ Html.text (String.join ", " (List.map Items.itemSlotToString container.items)) ]
