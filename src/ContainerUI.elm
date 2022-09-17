@@ -23,6 +23,11 @@ init container =
     { container = container, selectedSlot = Nothing }
 
 
+setSelectedSlot : Int -> Model -> Model
+setSelectedSlot int model =
+    { model | selectedSlot = Just int }
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
@@ -70,5 +75,5 @@ view { container, selectedSlot } =
         empties =
             List.repeat (container.capacity - count) (viewItem Nothing 0 False)
     in
-    Html.div [ Attrs.class "grid grid-cols-6 gap-2 w-fit" ]
+    Html.div [ Attrs.class "grid grid-cols-10 gap-2 w-fit" ]
         (full ++ empties)

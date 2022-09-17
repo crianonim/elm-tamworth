@@ -19,6 +19,7 @@ type ItemKind
     | WheatKind
     | CornKind
     | SeedKind PlantItemType
+    | NotAnItem
 
 
 type StackableItemType
@@ -29,6 +30,7 @@ type StackableItemType
 type SingleItemType
     = Hoe
     | WateringCan Int
+    | EmptySlot
 
 
 type PlantItemType
@@ -50,6 +52,9 @@ itemToItemKind item =
 
                 WateringCan _ ->
                     WateringCanKind
+
+                EmptySlot ->
+                    NotAnItem
 
         Stackable stackableItemType _ ->
             case stackableItemType of
@@ -82,6 +87,9 @@ itemKindToString itemKind =
 
         SeedKind plantItemType ->
             itemKindToString (itemToItemKind <| stackable (PlantItem plantItemType) 1) ++ " Seed"
+
+        NotAnItem ->
+            ""
 
 
 itemSlotToString : ItemSlot -> String
@@ -117,6 +125,11 @@ seedOf item a =
 single : SingleItemType -> ItemSlot
 single singleItemType =
     Single singleItemType
+
+
+empty : ItemSlot
+empty =
+    single EmptySlot
 
 
 exampleItems =
