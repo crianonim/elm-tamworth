@@ -40,16 +40,27 @@ type Msg
 
 getSelectedItem : Model -> Maybe Items.ItemSlot
 getSelectedItem model =
+    model
+        |> getSelectedIndex
+        |> Maybe.andThen (\i -> List.Extra.getAt i model.inventory.container.items)
+
+
+getSelectedIndex : Model -> Maybe Int
+getSelectedIndex model =
     Array.get model.selectedIndex model.container
         |> Maybe.andThen identity
-        |> Maybe.andThen (\i -> List.Extra.getAt i model.inventory.container.items)
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         UpdateInventory containerMsg ->
-            { model | inventory = ContainerUI.update containerMsg model.inventory }
+            case containerMsg of
+                ContainerUI.RightClick i ->
+                    { model | container = Array.set model.selectedIndex (Just i) model.container }
+
+                _ ->
+                    { model | inventory = ContainerUI.update containerMsg model.inventory }
 
         SetPocketItem ->
             { model | container = Array.set model.selectedIndex model.inventory.selectedSlot model.container }

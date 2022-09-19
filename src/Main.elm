@@ -1,5 +1,6 @@
 module Main exposing (Model, Msg, main)
 
+import Array
 import Browser
 import ContainerTransferUI
 import ContainerUI
@@ -56,7 +57,7 @@ update msg model =
                             Pocket.getSelectedItem model.pocket
 
                         _ =
-                            Debug.log "s,i" ( soil, item )
+                            Debug.log "s,i" <| Maybe.map (\itemId -> itemOnSoil itemId i model) (Pocket.getSelectedIndex model.pocket)
                     in
                     model
 
@@ -100,14 +101,45 @@ view model =
         ]
 
 
-itemOnSoil : Items.ItemSlot -> Farming.Soil -> String
-itemOnSoil itemSlot soil =
-    case ( itemSlot, soil ) of
-        ( Items.Single Items.Hoe, _ ) ->
-            "Hoe"
+type GameAction
+    = TillSoil Int Int
+    | PlantSeed Int Int
+    | Water Int Int
+
+
+itemOnSoil : Int -> Int -> Model -> Maybe GameAction
+itemOnSoil itemId soilId model =
+    let
+        mItemSlot : Maybe Items.ItemSlot
+        mItemSlot =
+            List.Extra.getAt itemId model.pocket.inventory.container.items
+
+        mSoil : Maybe Farming.Soil
+        mSoil =
+            List.Extra.getAt soilId model.farming.soils
+
+        _ =
+            Debug.log "is" ( mItemSlot, mSoil )
+    in
+    case Maybe.map2 Tuple.pair mItemSlot mSoil of
+        Just ( Items.Single Items.Hoe, soil ) ->
+            case ( soil.kind, soil.top ) of
+                ( Farming.Dirt, Farming.Empty ) ->
+                    Just <| TillSoil itemId soilId
+
+                _ ->
+                    Nothing
+
+        Just ( Items.Single (Items.WateringCan _), soil ) ->
+            case ( soil.kind, soil.top ) of
+                ( _, Farming.Tilled False ) ->
+                    Just <| Water itemId soilId
+
+                _ ->
+                    Nothing
 
         _ ->
-            "Nothing"
+            Nothing
 
 
 viewContainerTest container =
