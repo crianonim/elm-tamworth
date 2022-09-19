@@ -8,6 +8,7 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events exposing (onClick)
 import Items
+import List.Extra
 import Pocket
 
 
@@ -44,7 +45,23 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         UpdateFarming msgFarming ->
-            { model | farming = Farming.update msgFarming model.farming }
+            case msgFarming of
+                Farming.ActionOnSoil i ->
+                    let
+                        soil : Maybe Farming.Soil
+                        soil =
+                            List.Extra.getAt i model.farming.soils
+
+                        item =
+                            Pocket.getSelectedItem model.pocket
+
+                        _ =
+                            Debug.log "s,i" ( soil, item )
+                    in
+                    model
+
+                _ ->
+                    { model | farming = Farming.update msgFarming model.farming }
 
         UpdateInventory msgContainer ->
             { model | inventory = ContainerUI.update msgContainer model.inventory }
@@ -63,12 +80,13 @@ view model =
             Items.safeMoveBetweenContainers (Items.plantItem Items.Wheat 4) Items.exampleContainer Items.exampleContainer2
     in
     Html.div [ Attrs.class "h-full" ]
-        [ --, Farming.view model.farming |> Html.map UpdateFarming
-          --, viewContainerTest Items.exampleContainer
-          --, viewContainerTest Items.exampleContainer2
-          --, viewContainerTest c1
-          --, viewContainerTest c2
-          Pocket.view model.pocket |> Html.map UpdatePocket
+        [ Farming.view model.farming |> Html.map UpdateFarming
+
+        --, viewContainerTest Items.exampleContainer
+        --, viewContainerTest Items.exampleContainer2
+        --, viewContainerTest c1
+        --, viewContainerTest c2
+        , Pocket.view model.pocket |> Html.map UpdatePocket
 
         --, Html.div [] [ Html.text "Inventory" ]
         --, ContainerUI.view model.inventory |> Html.map UpdateInventory
@@ -80,6 +98,16 @@ view model =
         --, viewContainer (Items.exampleContainer |> Items.addItemToContainer (Items.plantItem Items.Wheat 168))
         --, Html.text Items.checkNumbers
         ]
+
+
+itemOnSoil : Items.ItemSlot -> Farming.Soil -> String
+itemOnSoil itemSlot soil =
+    case ( itemSlot, soil ) of
+        ( Items.Single Items.Hoe, _ ) ->
+            "Hoe"
+
+        _ ->
+            "Nothing"
 
 
 viewContainerTest container =

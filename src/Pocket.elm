@@ -6,7 +6,8 @@ import Html exposing (Html)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Html.Extra
-import Items
+import Items as Items
+import Json.Decode as Decode
 import List.Extra
 
 
@@ -22,7 +23,8 @@ init : Items.Container -> Model
 init inventory =
     { container =
         Array.initialize 10 (always Nothing)
-            |> Array.set 2 (Just 2)
+            |> Array.set 2 (Just 5)
+            |> Array.set 0 (Just 6)
     , selectedIndex = 0
     , inventory = ContainerUI.init inventory
     , showInventory = False
@@ -34,6 +36,13 @@ type Msg
     | SetPocketItem
     | SelectPocketSlot Int
     | ShowInventoryToggle
+
+
+getSelectedItem : Model -> Maybe Items.ItemSlot
+getSelectedItem model =
+    Array.get model.selectedIndex model.container
+        |> Maybe.andThen identity
+        |> Maybe.andThen (\i -> List.Extra.getAt i model.inventory.container.items)
 
 
 update : Msg -> Model -> Model
@@ -96,5 +105,6 @@ viewItem itemSlot i isSelected =
             else
                 ""
         , Events.onClick <| SelectPocketSlot i
+        , Events.preventDefaultOn "contextmenu" (Decode.succeed ( SelectPocketSlot i, True ))
         ]
         [ Html.text (Maybe.map Items.itemSlotToString itemSlot |> Maybe.withDefault "") ]

@@ -3,6 +3,7 @@ module Farming exposing (..)
 import Html exposing (..)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Json.Decode as Decode
 import List.Extra
 
 
@@ -16,6 +17,7 @@ type alias Model =
 type Msg
     = ChooseSoilAction Int SoilAction
     | SelectSoil Int
+    | ActionOnSoil Int
     | Turn
 
 
@@ -50,6 +52,9 @@ update msg model =
 
         Turn ->
             { model | soils = List.map processSoilTurn model.soils }
+
+        ActionOnSoil int ->
+            model
 
 
 type alias Soil =
@@ -252,7 +257,7 @@ viewSoil mSelected i soil =
                 ]
     in
     div [ Attrs.class "flex flex-row gap-2" ]
-        [ button attrs [ text "Select" ]
+        [ button (Events.preventDefaultOn "contextmenu" (Decode.succeed ( ActionOnSoil i, True )) :: attrs) [ text "Select" ]
         , div ([ Attrs.class "flex flex-row gap-2" ] ++ attrs)
             [ text "Soil Kind:"
             , span [] [ text <| soilKindToString soil.kind ]
